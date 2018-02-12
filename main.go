@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	pb "github.com/erikperttu/shippy-user-service/proto/auth"
@@ -13,14 +14,15 @@ const topic = "user.created"
 type Subscriber struct{}
 
 // Process currently just logs what happend
-func (sub *Subscriber) Process(ctx contxt.Context, usr *pb.User) error {
+func (sub *Subscriber) Process(ctx context.Context, user *pb.User) error {
 	log.Println("Picked up a new message")
 	log.Println("Sending email to: ", user.Name)
+	return nil
 }
 
 func main() {
 	srv := micro.NewService(
-		micro.Name("go.micro.srv.email"),
+		micro.Name("shippy.email"),
 		micro.Version("latest"),
 	)
 
