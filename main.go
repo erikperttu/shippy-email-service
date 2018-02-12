@@ -1,16 +1,22 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 
-	pb "github.com/erikperttu/shippy-user-service/proto/user"
-	"github.com/micro/go-micro"
-	"github.com/micro/go-micro/broker"
-	_ "github.com/micro/go-plugins/broker/nats"
+	pb "github.com/erikperttu/shippy-user-service/proto/auth"
+	micro "github.com/micro/go-micro"
 )
 
 const topic = "user.created"
+
+// Subscriber empty struct
+type Subscriber struct{}
+
+// Process currently just logs what happend
+func (sub *Subscriber) Process(ctx contxt.Context, usr *pb.User) error {
+	log.Println("Picked up a new message")
+	log.Println("Sending email to: ", user.Name)
+}
 
 func main() {
 	srv := micro.NewService(
@@ -21,34 +27,9 @@ func main() {
 	// Init will parse the cmd line flags
 	srv.Init()
 
-	// Get the broker instance using our environment variables
-	pubSub := srv.Server().Options().Broker
-
-	if err := pubSub.Connect(); err != nil {
-		log.Fatal(err)
-	}
-
-	// Subscribe to messages on the broker
-	_, err := pubSub.Subscribe(topic, func(p broker.Publication) error {
-		var user *pb.User
-		if err := json.Unmarshal(p.Message().Body, &user); err != nil {
-			return err
-		}
-		log.Println(user)
-		go sendEmail(user)
-		return nil
-	})
-
-	if err != nil {
-		log.Println(err)
-	}
+	micro.RegisterSubscriber(topic, srv.Server(), new(Subscriber))
 
 	if err := srv.Run(); err != nil {
 		log.Println(err)
 	}
-}
-
-func sendEmail(user *pb.User) error {
-	log.Println("Sending email to:", user.Name)
-	return nil
 }
